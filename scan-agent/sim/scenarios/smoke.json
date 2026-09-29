@@ -1,0 +1,15 @@
+{
+  "note": "Smoke test with synthetic pages.",
+  "page_gap": 2,
+  "steps": [
+    {"say": "Starting box thirteen. This is the Smith parcel folder, permits."},
+    {"page": "sim/synthetic/permit-1.jpg"},
+    {"page": "sim/synthetic/permit-2.jpg"},
+    {"page": "sim/synthetic/permit-2.jpg"},
+    {"say": "Oops, I scanned that last one twice."},
+    {"page": "sim/synthetic/inspection.jpg"},
+    {"page": "sim/synthetic/blank.jpg"},
+    {"page": "sim/synthetic/invoice.jpg"},
+    {"say": "That invoice doesn't belong here. It goes in the Jones folder."}
+  ]
+}

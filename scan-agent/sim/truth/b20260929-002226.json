@@ -1,0 +1,23 @@
+{
+  "note": "Same FOIA response set as other batches: PLCB July 8 extension notice (p0001 + Page 2 p0011), Pope Flynn/Barnwell letter, Byron Center Aug 12 fee letter (p0003 has no closing; p0015 is its 'Best regards' page 2), Holland invoice, Byron Center 3-page Thrun fee itemization form (p0007 blurry 1 of 3, p0008 2 of 3 with a PLCB sheet peeking out underneath, p0009 3 of 3), PLCB Aug 7 final response (p0010 + Page 2 p0014), and the one-page Byron Center July 28 extension letter (p0013, blurry but has its own sign-off). Documents listed in reading order.",
+  "documents": [
+    ["p0001-62b133", "p0011-9550c2"],
+    ["p0002-4d17d9"],
+    ["p0003-a5fc3c", "p0015-42fa00"],
+    ["p0005-a6fdf5"],
+    ["p0007-815db7", "p0008-0f3a8a", "p0009-2eb245"],
+    ["p0010-d202f7", "p0014-995326"],
+    ["p0013-5057cc"]
+  ],
+  "duplicates": {
+    "p0004-368173": "p0002-4d17d9",
+    "p0006-d50e4f": "p0005-a6fdf5",
+    "p0012-fdf099": "p0011-9550c2"
+  },
+  "blank": [],
+  "confidence": "high",
+  "uncertain": [
+    "The Byron Center fee itemization form (p0007-p0009, own '1 of 3'..'3 of 3' pagination) is the enclosure behind the 'cost' link in the Aug 12 letter; kept as a separate document, but a grader could reasonably merge it with [p0003, p0015].",
+    "p0008 shows the PLCB Aug 7 letterhead at the top because the form sheet was laid over the PLCB letter; the form is the captured sheet, so it goes with the form, not the PLCB letter."
+  ]
+}

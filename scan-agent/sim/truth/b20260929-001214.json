@@ -1,0 +1,16 @@
+{
+  "note": "Holland invoice; Byron Center FOIA fee itemization form (1-3 of 3); Pope Flynn Aug 6 letter; Byron Jul 28 extension letter; Byron Aug 12 fee letter (p0007 page 1 has no closing, and p0012 is its 'Best regards' signature page 2, while the Jul 28 letter already signs off); PLCB Jul 8 extension notice and PLCB Aug 7 final response, each shot page 2 first, so the lists below are in reading order.",
+  "documents": [
+    ["p0001-f23dbf"],
+    ["p0002-fe8877", "p0003-182079", "p0004-c020bd"],
+    ["p0005-651106"],
+    ["p0006-28ad51"],
+    ["p0007-cdcd04", "p0012-6a970c"],
+    ["p0009-cfa92f", "p0008-ffb3ac"],
+    ["p0011-07c167", "p0010-ed059b"]
+  ],
+  "duplicates": {},
+  "blank": [],
+  "confidence": "high",
+  "uncertain": ["The Byron fee itemization form (p0002-p0004) matches the Aug 12 fee letter ($139.07 / $69.54, due 9/9/2026) and was probably sent with it, but it has its own '1 of 3' page numbers and the letter doesn't mention an enclosure. I kept it as a separate document."]
+}

@@ -1,0 +1,69 @@
+{
+ "note": "Demo run on real scanned FOIA releases.",
+ "page_gap": 3,
+ "steps": [
+  {
+   "say": "Starting box seven. This folder is open records responses."
+  },
+  {
+   "page": "corpus/pages/hart-county-ga-records-response-letter/p0001.jpg"
+  },
+  {
+   "page": "corpus/pages/hart-county-ga-records-response-letter/p0002.jpg"
+  },
+  {
+   "page": "corpus/pages/marlette-mi-foia-response-cost-estimate/p0001.jpg"
+  },
+  {
+   "page": "corpus/pages/marlette-mi-foia-response-cost-estimate/p0002.jpg"
+  },
+  {
+   "page": "corpus/pages/marlette-mi-foia-response-cost-estimate/p0002.jpg"
+  },
+  {
+   "page": "corpus/pages/marlette-mi-foia-response-cost-estimate/p0003.jpg"
+  },
+  {
+   "say": "Oops, I think I fed that second page through twice."
+  },
+  {
+   "page": "corpus/pages/grantville-ga-open-records-cost-invoice/p0001.jpg"
+  },
+  {
+   "say": "Put that invoice in a separate billing folder."
+  },
+  {
+   "say": "Next folder is police reports."
+  },
+  {
+   "page": "corpus/pages/piqua-oh-traffic-crash-report/p0001.jpg"
+  },
+  {
+   "page": "corpus/pages/piqua-oh-traffic-crash-report/p0002.jpg"
+  },
+  {
+   "page": "corpus/pages/piqua-oh-traffic-crash-report/p0003.jpg"
+  },
+  {
+   "page": "corpus/pages/piqua-oh-traffic-crash-report/p0004.jpg"
+  },
+  {
+   "page": "corpus/pages/escambia-so-arrest-report/p0001.jpg"
+  },
+  {
+   "page": "corpus/pages/escambia-so-arrest-report/p0002.jpg"
+  },
+  {
+   "say": "That was just the first two pages of the arrest report, the rest is missing. Flag it."
+  },
+  {
+   "page": "corpus/pages/typewritten-speed-ordinance-162/p0001.jpg"
+  },
+  {
+   "page": "corpus/pages/typewritten-speed-ordinance-162/p0002.jpg"
+  },
+  {
+   "say": "Actually that ordinance isn't a police report, move it to a folder called ordinances."
+  }
+ ]
+}

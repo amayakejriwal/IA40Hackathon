@@ -1,0 +1,11 @@
+{
+  "note": "Hand-checked from the page images. p0008 is the signature page of the Aug 12 Byron Center fee letter (p0005 ends without a closing; p0006 already closes). p0009 is the same sheet shot again.",
+  "documents": [
+    ["p0001-4a5c92", "p0002-6d1191"],
+    ["p0003-35326a", "p0004-724bd3"],
+    ["p0005-f6e0d3", "p0008-efdbdc"],
+    ["p0006-381371"],
+    ["p0007-c288d1"]
+  ],
+  "duplicates": {"p0009-1ecde8": "p0008-efdbdc"}
+}

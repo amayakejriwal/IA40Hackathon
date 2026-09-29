@@ -1,0 +1,16 @@
+#!/bin/zsh
+# intake <page-id>  → one-shot page check: ink coverage, near-duplicate scan vs recent pages, OCR text.
+# Run from the session directory.
+set -e
+id=$1
+img=capture/pages/$id.jpg
+mkdir -p work/ocr
+print "== $id"
+print -n "ink: "; bin/blank "$img" | awk '{print $1}'
+recent=($(ls capture/pages/*.jpg | grep -v "/$id.jpg" | tail -4))
+if (( ${#recent} )); then
+  print "nearest earlier pages (dhash distance, <=8 ≈ same sheet):"
+  bin/similar "$img" $recent | sort -n | head -3 | sed 's/^/  /'
+fi
+print "ocr:"
+bin/ocr "$img" work/ocr/$id | sed '/^[[:space:]]*$/d' | head -80

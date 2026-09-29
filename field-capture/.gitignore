@@ -1,0 +1,9 @@
+ios/build/
+ios/FieldCapture.xcodeproj/xcuserdata/
+pipeline/out/
+*.thumb.jpg
+pipeline/live/events.js
+pipeline/live/img
+pipeline/ocrfull
+receiver/tools/ocrfull
+receiver/tools/ocrprobe

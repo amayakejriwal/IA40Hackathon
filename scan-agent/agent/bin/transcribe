@@ -1,0 +1,15 @@
+#!/bin/zsh
+# transcribe <audio> [out.txt]  → prints the transcript (whisper.cpp, local).
+set -e
+src=$1; out=${2:-}
+model=${WHISPER_MODEL:-$HOME/whisper.cpp/models/ggml-small.en.bin}
+mkdir -p work/tmp; tmp=work/tmp/${src:t:r}.$$.wav   # system temp is outside the sandbox
+ffmpeg -loglevel error -y -i "$src" -ar 16000 -ac 1 "$tmp"
+run() { whisper-cli -m "$model" -f "$tmp" -nt -np "$@" 2>>work/tmp/whisper.log | sed 's/^ *//' | tr '\n' ' ' | sed -e 's/^ *//' -e 's/ *$//' }
+: > work/tmp/whisper.log
+text=$(run)
+[[ -z $text ]] && text=$(run -ng)   # Metal is unavailable inside the Codex sandbox: fall back to CPU
+rm -f "$tmp"
+[[ -z $text ]] && { print -u2 "transcribe: empty result, see work/tmp/whisper.log"; }
+[[ -n $out ]] && print -r -- "$text" > "$out"
+print -r -- "$text"

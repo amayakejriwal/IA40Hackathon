@@ -1,0 +1,10 @@
+{
+  "note": "Four captures of one sheet within about 4 seconds: the Byron Center signature page (page 2 of a letter whose page 1 isn't in this batch). The first capture, p0001-429057, is too blurry to read.",
+  "documents": [
+    ["p0001-2c3e9c"]
+  ],
+  "duplicates": {"p0001-9d160d": "p0001-2c3e9c", "p0002-4f7b35": "p0001-2c3e9c"},
+  "blank": ["p0001-429057"],
+  "confidence": "high",
+  "uncertain": ["p0001-429057 is an unreadable blurry shot of the same sheet (same layout). I marked it blank rather than as a duplicate because it is the earliest capture and has no usable content; calling it a duplicate of p0001-2c3e9c would also be defensible."]
+}

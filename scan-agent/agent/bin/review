@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""review → one compact view of the whole session, in capture order, for the finalization pass:
+each page's current assignment, first and last OCR lines, closing/signature and page-number
+cues, dates, and near-duplicate distances to the previous 3 pages, interleaved with the spoken notes."""
+import json, re, subprocess
+
+L = json.load(open("ledger.json"))
+events = [json.loads(x) for x in open("capture/events.jsonl")]
+CLOSING = re.compile(r"^(sincerely|respectfully|best regards|regards|yours truly|cordially)\b", re.I)
+PAGENO = re.compile(r"\bpage\s+\d+(\s+of\s+\d+)?\b|\b\d+\s+of\s+\d+\b", re.I)
+DATE = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b", re.I)
+prev = []
+for e in sorted([e for e in events if e["type"] in ("page", "audio")], key=lambda e: e["t"]):
+    if e["type"] == "audio":
+        n = L["notes"].get(e["id"], {})
+        print(f'\n🎙 {e["id"]} t={e["t"]:.1f}  "{n.get("text", "?")}"  [{n.get("kind", "?")}]')
+        continue
+    pid, p = e["id"], L["pages"].get(e["id"], {})
+    try:
+        lines = [l.strip() for l in open(f"work/ocr/{pid}.txt") if re.search(r"[A-Za-z]{3,}.*[A-Za-z]{3,}", l)]  # drop OCR speckle
+    except FileNotFoundError:
+        lines = []
+    text = " ".join(lines)
+    dist = ""
+    if prev:
+        out = subprocess.run(["bin/similar", e["file"], *prev[-3:]], capture_output=True, text=True).stdout
+        dist = ", ".join(f'{l.split()[1].split("/")[-1][:-4]}={l.split()[0]}' for l in out.strip().splitlines())
+    prev.append(e["file"])
+    print(f'\n{pid} t={e["t"]:.1f}  status={p.get("status")} doc={p.get("doc")} quality={p.get("quality", "ok")}  words={len(text.split())}')
+    print(f'  top:    {" | ".join(lines[:3])[:220]}')
+    print(f'  bottom: {" | ".join(lines[-3:])[:220]}')
+    cues = []
+    if any(CLOSING.search(l) for l in lines[-20:]): cues.append("has sign-off (Sincerely/Regards + name)")
+    if m := PAGENO.search(text): cues.append(f'page marker "{m.group(0)}"')
+    if ds := DATE.findall(text[:400]) and [m.group(0) for m in DATE.finditer(text[:400])]: cues.append(f'dates {ds[:2]}')
+    if dist and min(int(x.split("=")[1]) for x in dist.split(", ")) <= 40: cues.append("LIKELY SAME SHEET as a recent page (dist <=40; different sheets are usually 50+)")
+    print(f'  cues:   {"; ".join(cues) or "-"}   dup-dist: {dist or "-"}')
+def signed(pid):
+    try:
+        lines = [l.strip() for l in open(f"work/ocr/{pid}.txt") if re.search(r"[A-Za-z]{3,}", l)]
+    except FileNotFoundError:
+        return False
+    return any(CLOSING.search(l) for l in lines[-20:])
+
+print("\nDocuments now:")
+for did, d in L["documents"].items():
+    pages = [p for p in d.get("pages", []) if L["pages"].get(p, {}).get("status", "ok") == "ok"]
+    ends = "ends with sign-off" if pages and signed(pages[-1]) else "NO SIGN-OFF YET (a letter missing its closing page?)"
+    only = " · SIGN-OFF-ONLY document: attach it to the unsigned letter it belongs to" if len(pages) == 1 and signed(pages[0]) and len(open(f"work/ocr/{pages[0]}.txt").read().split()) < 60 else ""
+    print(f'  {did} {d.get("type")} pages={d.get("pages")} · {ends}{only} · "{d.get("title", "")[:60]}"')

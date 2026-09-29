@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Change the session ledger. Preferred form, immune to shell quoting:
+
+    bin/ledger <<'JSON'
+    {"msg": ["p0007 → new invoice d004, Acme Paving, $4,210.00"],
+     "patch": {"pages": {"p0007": {"status": "ok", "doc": "d004"}}, "documents": {...}}}
+    JSON
+
+`patch` is an RFC 7396 merge patch (null deletes a key). `msg` is one line per event the patch
+covers; it is shown live as the activity feed. Also accepted: bin/ledger '<patch>' -m "msg" ...
+`bin/ledger show [key.path]` prints state."""
+import json, sys, time, os
+
+PATH, LOG = "ledger.json", "ledger.log.jsonl"
+
+def load():
+    return json.load(open(PATH))
+
+def merge(a, b):
+    if not isinstance(b, dict):
+        return b
+    a = dict(a) if isinstance(a, dict) else {}
+    for k, v in b.items():
+        if v is None:
+            a.pop(k, None)
+        else:
+            a[k] = merge(a.get(k), v)
+    return a
+
+args = sys.argv[1:]
+if args and args[0] == "show":
+    node = load()
+    for part in (args[1].split(".") if len(args) > 1 else []):
+        node = node.get(part, {}) if isinstance(node, dict) else {}
+    print(json.dumps(node, indent=1))
+    sys.exit()
+
+try:
+    if args and not args[0].startswith("-"):
+        patch = json.loads(args[0])
+        msgs = [args[i + 1] for i, a in enumerate(args) if a == "-m" and i + 1 < len(args)]
+    else:
+        body = json.loads(sys.stdin.read())
+        patch, msgs = body.get("patch", {}), body.get("msg", [])
+        msgs = [msgs] if isinstance(msgs, str) else msgs
+except json.JSONDecodeError as e:
+    sys.exit(f"ledger: invalid JSON ({e}). Nothing was written.")
+
+if patch.get("status") == "done" and not os.path.exists("manifest.json"):
+    sys.exit("ledger: refusing status=done: run bin/finalize first (no manifest.json). Nothing was written.")
+
+state = merge(load(), patch)
+tmp = PATH + ".tmp"
+json.dump(state, open(tmp, "w"), indent=1)
+os.replace(tmp, PATH)
+with open(LOG, "a") as f:
+    for i, msg in enumerate(msgs or [""]):
+        f.write(json.dumps({"t": time.time(), "msg": msg, "patch": patch if i == 0 else None}) + "\n")
+print("ok:", " | ".join(msgs))

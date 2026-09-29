@@ -1,0 +1,25 @@
+{
+  "note": "PLCB Aug 7 final response (2 pp); PLCB Jul 8 extension notice (2 pp, page 1 shot three times, page 2 twice); Byron Center Aug 12 fee letter page 1 only (its 'Best regards' signature page 2 is not in this batch); Byron Center Jul 28 extension letter (shot twice); Pope Flynn Aug 6 letter; Byron Center FOIA fee itemization form page 1 of 3. p0008 is the Pope Flynn sheet photographed from the back (mirrored show-through; operator says 'it's backwards'), then re-shot correctly as p0009.",
+  "documents": [
+    ["p0001-4badfa", "p0002-92f814"],
+    ["p0003-3d0a64", "p0004-57aa3b"],
+    ["p0005-d0b74d"],
+    ["p0006-8b9ac0"],
+    ["p0009-ae042b"],
+    ["p0010-a422f7"]
+  ],
+  "duplicates": {
+    "p0003-a77bb7": "p0003-3d0a64",
+    "p0003-f84553": "p0003-3d0a64",
+    "p0004-717416": "p0004-57aa3b",
+    "p0007-8ce727": "p0006-8b9ac0"
+  },
+  "blank": ["p0008-a607a6"],
+  "confidence": "high",
+  "uncertain": [
+    "p0008-a607a6 is the back of the Pope Flynn letter (mirrored, unreadable show-through). I marked it blank because it has no usable content; it is the same physical sheet as p0009, but it was captured earlier, so it can't be recorded as p0009's duplicate.",
+    "p0003-3d0a64 (the earliest capture of the Jul 8 page 1) was rejected by the app as 'cut off' but is mostly readable (right edge clipped), so it is kept as the document page and the later blurry and sharp shots are its duplicates.",
+    "The Byron fee itemization form (p0010, '1 of 3') was probably mailed with the Aug 12 fee letter (same $139.07), but it has its own page numbers, so I kept it separate, matching b20260929-001214.",
+    "The Aug 12 letter (p0005) is page 1 of 2, and its signature page was not captured in this batch, so it stands alone."
+  ]
+}

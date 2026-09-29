@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""finalize → files every document, then writes the deliverables from the ledger:
+schema.json, index.csv (load file), review.json, manifest.json (sha256 of masters and outputs,
+page reconciliation). Prints the reconciliation. Run after you have normalized the schema."""
+import csv, hashlib, json, os, subprocess
+
+subprocess.run(["bin/file", "--all"], check=True)
+L = json.load(open("ledger.json"))
+docs, pages = L["documents"], L["pages"]
+sha = lambda f: hashlib.sha256(open(f, "rb").read()).hexdigest()
+
+json.dump(L.get("schema", {}), open("schema.json", "w"), indent=1)
+
+fields = sorted({f for s in L.get("schema", {}).values() for f in s.get("fields", {})} |
+                {f for d in docs.values() for f in d.get("fields", {})})
+with open("index.csv", "w", newline="") as fh:
+    w = csv.writer(fh)
+    w.writerow(["id", "type", "title", "date", "box", "folder", "file", "pages", "entities", "needs_review", *fields])
+    for did, d in docs.items():
+        f = L.get("folders", {}).get(d.get("folder"), {})
+        ents = [L.get("entities", {}).get(e, {}).get("name", e) for e in d.get("entities", [])]
+        w.writerow([did, d.get("type"), d.get("title"), d.get("date"), f.get("box"), f.get("name", d.get("folder")),
+                    d.get("file"), len(d.get("pages", [])), "; ".join(ents), len(d.get("review", [])),
+                    *[d.get("fields", {}).get(k, "") for k in fields]])
+
+review = [{"doc": did, "title": d.get("title"), **r} for did, d in docs.items() for r in d.get("review", [])]
+review += [{"page": pid, "field": "quality", "reason": p["quality"]} for pid, p in pages.items() if p.get("quality", "ok") != "ok"]
+json.dump(review, open("review.json", "w"), indent=1)
+
+events = [json.loads(x) for x in open("capture/events.jsonl")]
+received = [e["id"] for e in events if e["type"] == "page"]
+expected = next((e["pages"] for e in events if e["type"] == "end"), None)
+unaccounted = [p for p in received if not (pages.get(p, {}).get("doc") or pages.get(p, {}).get("status") in ("duplicate", "blank", "removed"))]
+recon = {"expected": expected, "received": len(received), "unaccounted": unaccounted,
+         "by_status": {s: sum(1 for p in pages.values() if p.get("status") == s) for s in {p.get("status") for p in pages.values()}}}
+outputs = [os.path.join(r, f) for r, _, fs in os.walk("archive") for f in fs]
+json.dump({"session": L.get("session"), "reconciliation": recon,
+           "masters": [{"id": e["id"], "file": e["file"], "sha256": e["sha256"], "verified": sha(e["file"]) == e["sha256"]} for e in events if e["type"] in ("page", "audio")],
+           "outputs": [{"file": f, "sha256": sha(f)} for f in sorted(outputs)]},
+          open("manifest.json", "w"), indent=1)
+print(json.dumps({"reconciliation": recon, "documents": len(docs), "review_items": len(review), "outputs": len(outputs)}, indent=1))

@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""file <doc-id>... | file --all
+Files documents from the ledger: joins the searchable page PDFs (made at intake) into the
+document's PDF at its ledger `file` path, writes the .json sidecar next to it, removes the
+copy at the old path if the document moved, and marks the document `filed`.
+Skips duplicate, blank and removed pages."""
+import json, os, subprocess, sys, time
+
+L = json.load(open("ledger.json"))
+ids = list(L["documents"]) if sys.argv[1:] == ["--all"] else sys.argv[1:]
+patch, msgs = {"documents": {}}, []
+for did in ids:
+    d = L["documents"].get(did)
+    if not d or not d.get("file"):
+        print(f"skip {did}: no `file` path set in the ledger"); continue
+    pages = [p for p in d.get("pages", []) if L["pages"].get(p, {}).get("status", "ok") == "ok"]
+    parts = []
+    for p in pages:
+        pdf = f"work/ocr/{p}.pdf"
+        if not os.path.exists(pdf):
+            subprocess.run(["bin/ocr", f"capture/pages/{p}.jpg", f"work/ocr/{p}"], capture_output=True)
+        parts.append(pdf)
+    if not parts:
+        print(f"skip {did}: no usable pages"); continue
+    out = d["file"] if d["file"].endswith(".pdf") else d["file"] + ".pdf"
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    if len(parts) == 1:
+        subprocess.run(["cp", parts[0], out], check=True)
+    else:
+        subprocess.run(["pdfunite", *parts, out], check=True)
+    old = d.get("filed_as")
+    if old and old != out:
+        for f in (old, old[:-4] + ".json"):
+            if os.path.exists(f): os.remove(f)
+    json.dump({"id": did, **d, "file": out, "pages_filed": pages}, open(out[:-4] + ".json", "w"), indent=1)
+    patch["documents"][did] = {"state": "filed", "file": out, "filed_as": out}
+    msgs.append(f"{did} filed → {out.removeprefix('archive/')} ({len(pages)}p)")
+    print(msgs[-1])
+if msgs:
+    subprocess.run(["bin/ledger", json.dumps(patch), *sum((["-m", m] for m in msgs), [])], check=True, capture_output=True)

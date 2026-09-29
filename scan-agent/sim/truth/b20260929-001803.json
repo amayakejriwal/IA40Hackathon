@@ -1,0 +1,19 @@
+{
+  "note": "Pope Flynn Aug 6 letter; Byron Center Jul 28 extension letter; Byron Center Aug 12 fee letter (p0003 page 1 with no closing + p0012 'Best regards' signature page 2, shot last); PLCB Jul 8 extension notice and PLCB Aug 7 final response, each shot page 2 first (lists are in reading order); Byron fee itemization form pages 1-2 of 3; City of Holland invoice. p0004 is an unreadably blurred shot of the Jul 8 page 2, re-shot sharply as p0005 (operator: 'that may be a duplicate').",
+  "documents": [
+    ["p0001-427691"],
+    ["p0002-1a381d"],
+    ["p0003-d56f73", "p0012-3781fc"],
+    ["p0006-803bf7", "p0005-d06879"],
+    ["p0008-7327aa", "p0007-82b5f5"],
+    ["p0009-52977e", "p0010-785869"],
+    ["p0011-91bd0a"]
+  ],
+  "duplicates": {},
+  "blank": ["p0004-a75b12"],
+  "confidence": "high",
+  "uncertain": [
+    "p0004-a75b12 is a motion-blurred, unreadable capture of the PLCB Jul 8 page 2 (same layout, checkmarks and signature as p0005). Following b20260929-001527, I marked it blank rather than making p0005 its duplicate. Calling it a duplicate of p0005 would also be defensible.",
+    "p0009-52977e (fee form 1 of 3) is very blurry but identifiable by layout, the '1 of 3' footer and the $139.07 fee, so it is kept as a page. Fee form page 3 of 3 was not captured. The form is kept separate from the Aug 12 letter, matching b20260929-001214."
+  ]
+}

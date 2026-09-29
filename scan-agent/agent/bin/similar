@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+"""similar <new.jpg> <other.jpg>... → perceptual-hash distance to each (0 = same file; <=8 same capture; <=40 usually the same sheet shot again with different framing; different sheets are usually 50+)."""
+import sys
+from PIL import Image, ImageOps
+
+def dhash(path, size=16):
+    im = ImageOps.grayscale(Image.open(path)).resize((size + 1, size))
+    px = list(im.get_flattened_data() if hasattr(im, "get_flattened_data") else im.getdata())
+    return [px[r * (size + 1) + c] > px[r * (size + 1) + c + 1] for r in range(size) for c in range(size)]
+
+new = dhash(sys.argv[1])
+for other in sys.argv[2:]:
+    d = sum(a != b for a, b in zip(new, dhash(other)))
+    print(f"{d:3d}  {other}")

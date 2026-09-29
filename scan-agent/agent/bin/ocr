@@ -1,0 +1,14 @@
+#!/bin/zsh
+# ocr <image> <out-base>  → <out-base>.txt (Apple Vision text; Tesseract if Vision is unavailable),
+# .pdf (searchable page, Tesseract text layer) and .tsv; prints the text.
+set -e
+img=$1; out=${2:-${img:r}}
+here=${0:A:h}
+py=$here/../../.venv/bin/python
+tesseract "$img" "$out" -l eng --psm 3 txt tsv pdf >/dev/null 2>&1
+if [[ -x $py ]] && $py $here/vision_ocr.py "$img" "$out" 2>/dev/null; then
+  :
+elif (( $(wc -w < "$out.txt") < 5 )); then
+  tesseract "$img" "$out" -l eng --psm 11 txt tsv pdf >/dev/null 2>&1   # sparse pages
+fi
+cat "$out.txt"

@@ -1,0 +1,23 @@
+{
+  "note": "Same physical set as b20260929-002226, shuffled: PLCB Aug 7 final response (p0004 page 1, p0001 Page 2), Byron Center July 28 extension letter, PLCB July 8 extension notice (p0014 page 1, p0003 Page 2), Byron Center 3-page fee itemization form (page 1 shot upside down three times: p0005 blurry, p0006 sharp, p0007 blurry with the Holland invoice showing above), Holland invoice, Pope Flynn/Barnwell letter, Byron Center Aug 12 fee letter (p0012 blurry, p0013 sharp re-shot, p0015 signature page 2). Documents listed in reading order, not capture order.",
+  "documents": [
+    ["p0004-f07245", "p0001-0f77c4"],
+    ["p0002-7493e6"],
+    ["p0014-315f4e", "p0003-f22f54"],
+    ["p0005-237c2c", "p0008-9a77da", "p0009-93237c"],
+    ["p0010-e134be"],
+    ["p0011-727f0d"],
+    ["p0012-d6f7ac", "p0015-04f3e2"]
+  ],
+  "duplicates": {
+    "p0006-ca0040": "p0005-237c2c",
+    "p0007-688022": "p0005-237c2c",
+    "p0013-5b90de": "p0012-d6f7ac"
+  },
+  "blank": [],
+  "confidence": "high",
+  "uncertain": [
+    "The Byron Center fee itemization form (p0005/p0008/p0009) is the enclosure referenced by the Aug 12 letter; kept separate because it has its own 1-of-3 pagination, but it could be merged with [p0012, p0015].",
+    "Fee form page 1 was captured three times; the earliest (p0005) is blurry, and the sharp copy is p0006. Following the rule, duplicates map to the earliest capture."
+  ]
+}

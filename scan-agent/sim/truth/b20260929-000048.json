@@ -1,0 +1,11 @@
+{
+  "note": "Three captures (all numbered p0001, all flagged for glare but fully readable): the Aug 6 Pope Flynn/Barnwell County FOIA letter shot twice, then page 1 of the Aug 12 Byron Center fee letter. The narration mentions a second page, a third page and an attached bill, but none of them were captured in this batch, so the Byron page stands alone.",
+  "documents": [
+    ["p0001-57be0c"],
+    ["p0001-0580e4"]
+  ],
+  "duplicates": {"p0001-fc9a9d": "p0001-57be0c"},
+  "blank": [],
+  "confidence": "high",
+  "uncertain": ["p0001-0580e4 is page 1 of a multi-page letter whose later pages are missing from this batch; I scored it as its own one-page document."]
+}

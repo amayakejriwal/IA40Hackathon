@@ -1,0 +1,20 @@
+{
+  "note": "Byron Center Aug 12 fee letter (the p0001 'Best regards' signature page 2 was shot first, then page 1 as p0003; the list is in reading order); PLCB Jul 8 extension notice page 1 only; Pope Flynn Aug 6 letter. The other captures are blurry or angled re-shots, some with a Mishima novel in frame, plus one frame (p0002-7d9092) that shows only the book cover and the desk.",
+  "documents": [
+    ["p0003-9d4aca", "p0001-c8aff0"],
+    ["p0002-c6872b"],
+    ["p0004-4d60cb"]
+  ],
+  "duplicates": {
+    "p0002-8e469f": "p0001-c8aff0",
+    "p0004-df2002": "p0003-9d4aca",
+    "p0005-a2d384": "p0004-4d60cb"
+  },
+  "blank": ["p0002-7d9092"],
+  "confidence": "high",
+  "uncertain": [
+    "The capture ids don't follow capture order (p0002-8e469f was shot before p0002-7d9092 and p0002-c6872b, and p0004-df2002 before p0004-4d60cb), so I used timing.captured_at to choose the earlier capture in each duplicate pair.",
+    "The PLCB Jul 8 notice (p0002-c6872b) is page 1 only. Its page 2 was not captured in this batch.",
+    "The signature page p0001 is assigned to the Aug 12 letter because that letter's page 1 ends with no closing and its page 2 is numbered '2', as in the earlier batches."
+  ]
+}
