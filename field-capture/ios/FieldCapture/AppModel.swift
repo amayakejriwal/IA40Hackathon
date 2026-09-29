@@ -63,6 +63,15 @@ final class AppModel: ObservableObject {
             self?.receiver = label; self?.queued = n
             self?.offline = label.hasPrefix("Offline") || label.hasPrefix("Retrying")
         }
+        engine.onMirror = { [weak self] jpeg, quad, state in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                var m: [String: Any] = ["count": self.accepted, "running": self.running, "state": state, "offline": self.offline]
+                if let c = self.cue { m["cue"] = c == .rescan ? "rescan" : "next" }
+                if let q = quad { m["quad"] = q.points.map { [Double($0.x), Double(1 - $0.y)] } }
+                if let d = try? JSONSerialization.data(withJSONObject: m) { self.uploader.mirror(jpeg, meta: d.base64EncodedString()) }
+            }
+        }
         uploader.start(manualHost: manualHost)
         audio.thresholdDB = Float(tuning.micThresholdDB)
         audio.onLevel = { [weak self] db, open in self?.micDB = db; self?.micOpen = open }

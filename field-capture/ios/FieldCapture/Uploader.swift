@@ -15,6 +15,8 @@ final class Uploader {
     private var hostLabel = "Looking for laptop…"
     private var failures = 0
     private var browser: NWBrowser?
+    private var manual = ""
+    private var mirrorBusy = false
 
     var onSent: ((String, String) -> Void)?   // main: page id, kind
     var onState: ((String, Int) -> Void)?     // main: receiver label, queued count
@@ -33,6 +35,7 @@ final class Uploader {
         queue.async { [self] in
             browser?.cancel(); browser = nil
             let host = manualHost.trimmingCharacters(in: .whitespaces)
+            manual = host
             if !host.isEmpty {
                 use(host: host, label: "\(host) (manual)")
                 return
@@ -65,6 +68,22 @@ final class Uploader {
             items.append(Item(batch: batch, page: page, kind: kind, file: url))
             report()
             kick()
+        }
+    }
+
+    /// Latest preview frame for the laptop's phone mirror. Best effort: dropped while one is in flight.
+    func mirror(_ jpeg: Data, meta: String) {
+        queue.async { [self] in
+            guard let base, !mirrorBusy else { return }
+            mirrorBusy = true
+            var req = URLRequest(url: base.appendingPathComponent("api/mirror"))
+            req.httpMethod = "POST"
+            req.timeoutInterval = 3
+            req.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+            req.setValue(meta, forHTTPHeaderField: "X-Mirror")
+            URLSession.shared.uploadTask(with: req, from: jpeg) { [weak self] _, _, _ in
+                self?.queue.async { self?.mirrorBusy = false }
+            }.resume()
         }
     }
 
@@ -105,6 +124,8 @@ final class Uploader {
                     let why = err?.localizedDescription ?? "HTTP \((resp as? HTTPURLResponse)?.statusCode ?? 0)"
                     if self.failures >= 2 { self.hostLabel = "Offline: \(why)" }
                     self.report()
+                    // The USB link's address changes when the cable reconnects: look the laptop up again.
+                    if self.manual.isEmpty, self.failures % 4 == 0 { self.start(manualHost: "") }
                     self.queue.asyncAfter(deadline: .now() + min(0.5 * Double(self.failures), 3)) {
                         if self.failures >= 2, let h = base.host, let p = base.port { self.hostLabel = "Retrying \(h):\(p)" }
                         self.sendNext()

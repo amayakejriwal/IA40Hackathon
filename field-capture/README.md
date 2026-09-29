@@ -68,6 +68,15 @@ link-local address exists only while it is plugged in. Measured 0.9 ms round tri
 
 ### Phone mirror for demo recordings
 
+The app posts ~10 preview frames a second, with its page count, cue, outline and Start/Stop state,
+to `POST /api/mirror` over the same link as uploads. The live board redraws the phone bottom-right
+from `GET /api/mirror`. Run the receiver with `FIELD_CAPTURE_ADVERTISE_IP=usb` so it follows the USB
+link's address, which changes on every reconnect; the app looks the laptop up again after failed uploads.
+
+Do not use `receiver/tools/phonescreen` while scanning over USB. It mirrors the real screen through
+CoreMediaIO (the QuickTime source), but that switches the iPhone's USB mode and removes the USB
+network link, so uploads stop. Use it only with Wi-Fi uploads.
+
 `receiver/tools/phonescreen` mirrors the USB iPhone's screen (the source QuickTime uses) as MJPEG on
 `:8766/stream`, and the live board shows it bottom-right whenever it is running:
 
