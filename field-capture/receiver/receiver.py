@@ -240,7 +240,11 @@ def reader():
                                           timeout=90).stdout.strip().splitlines()[-1])
             Path(f"{base}.full.json").write_text(json.dumps(r))
             words, rate = r["words"], r["real_word_rate"]
-            verdict = "few words" if words < 30 else ("READS" if rate >= 0.6 else "DID NOT READ - retake")
+            # Judge by Vision's own line confidence, not dictionary hits: numbers, names and plurals
+            # are missing from /usr/share/dict/words, so clear tables and short pages looked unreadable.
+            # On 87 pages: blurry/faint 0.38-0.66, clear >= 0.77.
+            conf = sum(l["conf"] for l in r["lines"]) / max(1, len(r["lines"]))
+            verdict = "few words" if words < 30 else ("READS" if conf >= 0.7 else "DID NOT READ - retake")
             snippet = next((l["text"] for l in r["lines"] if len(l["text"]) > 12), "")
             out = {"read_words": words, "read_rate": round(rate, 2), "read_verdict": verdict, "read_ms": r["ms"],
                    "orientation": r["orientation"]}

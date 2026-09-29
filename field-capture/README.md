@@ -107,7 +107,7 @@ Re-posting a `doc` with the same id updates it, which is how reordering and reun
 | Glare | pixels ≥ max(paper+35, 245) > 1 % | First rule (paper+18) rejected clean cream paper; clean pages score ≤ 0.11 % |
 | Cut-off | a detected corner within 0.6 % of the frame edge | Correctly rejected a book detected as a page |
 | Mic | open a clip at −30 dBFS, keep only if its peak ≥ −22 dBFS | All real speech peaked ≥ −19.7 dB; all empty/noise clips ≤ −20.7 dB |
-| Laptop "did it read" | ≥ 30 words and < 60 % dictionary words → rescan | Good pages 71–84 %; blurry 0–11 %; soft-corner 20–34 % |
+| Laptop "did it read" | ≥ 30 words and mean Vision line confidence < 0.70 → rescan | On 87 pages: blurry or faint 0.38–0.66, clear ≥ 0.77. The earlier rule (< 60 % dictionary words) flagged clear tables and short pages, because numbers, names and plurals are not in `/usr/share/dict/words` |
 | Duplicates (laptop) | ORB features + RANSAC inliers; > 250 = duplicate, 200–300 = review | Duplicates 294–828; different pages ≤ 220 (same-template forms are the closest) |
 
 ## What we learned
