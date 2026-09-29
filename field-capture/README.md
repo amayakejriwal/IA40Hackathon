@@ -34,6 +34,7 @@ this receiver's batches, and `sim/truth/` holds ground truth for nine of tonight
 | `ios/FieldCapture/AppModel.swift` / `ContentView.swift` | Session Start/Stop, Next/Rescan cue, minimal UI, settings sheet |
 | `receiver/receiver.py` | Stdlib HTTP server: uploads, ledger, Bonjour advert, Whisper, OCR, live event stream |
 | `receiver/agent.py` | `show` a page's OCR text; `post` agent decisions to the live board |
+| `receiver/watch.py` | Feed for the live agent: each read page with its OCR text, voice clips, session changes |
 | `receiver/dashboard.html` | Operator dashboard (`http://localhost:8765`): every capture, latency, OCR verdicts |
 | `receiver/tools/ocrfull.swift` | Apple Vision OCR (text + word boxes, upside-down check), used per page |
 | `receiver/tools/ocrprobe.swift` | OCR readability probe (real-word rate; used for calibration) |
@@ -52,7 +53,26 @@ cd ios && ./build.sh                                           # only after code
 
 On the phone, open Demo and press **Start**. It finds the laptop over Bonjour
 (`_fieldscan._tcp`), or you can long-press the page count and enter `10.0.0.148:8765`.
-Only Wi-Fi is needed; the USB cable is only for installing builds.
+
+**On hotel or conference Wi-Fi, use the USB cable instead.** Those networks often block
+device-to-device traffic. A plugged-in iPhone gets a link-local network with the Mac (the
+Mac's address is on the `en*` interface with a `169.254.x.x` address, found with `ifconfig`).
+Advertise that address so the app picks it up with no typing:
+
+```sh
+FIELD_CAPTURE_ADVERTISE_IP=169.254.19.19 python3 -u receiver.py | tee -a receiver.log
+```
+
+Reinstall or clear any typed host first: a typed host overrides Bonjour. Keep the cable in; the
+link-local address exists only while it is plugged in. Measured 0.9 ms round trip, no loss.
+
+### Live agent
+
+The board files pages into documents only when an agent posts decisions. To run the agent
+live, follow the receiver with `python3 -u receiver/watch.py` (one line per read page with its
+OCR text, per voice clip, per session change) and answer each page with `receiver/agent.py post`:
+`doc` (re-post the same id to add or reorder pages), `entity`, `issue`, `narration`. Restart the
+receiver to clear the board; its event log is in memory.
 
 Receiver prerequisites: `whisper-cli` (Homebrew whisper-cpp), `ffmpeg`,
 `receiver/models/ggml-base.en.bin` (git-ignored, 148 MB, from huggingface ggerganov/whisper.cpp),
