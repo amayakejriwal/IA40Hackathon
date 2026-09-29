@@ -95,6 +95,16 @@ and, from the agent: `doc {id, box, boxkey, title, doctype, date, pages[] (readi
 `entity {name, etype: person|org|agency|address, doc, seen}` · `issue {sev: high|med|low|info, doc, text}` · `narration {text}`.
 Re-posting a `doc` with the same id updates it, which is how reordering and reuniting pages show on the board.
 
+A `doc` may carry `access: {level, parties[], reason}`. Levels: `public` (everyone), `internal`
+(any named party; the default), `restricted` and `privileged` (only the listed parties, such as
+`Finance`, `Legal`, `Medical`). The board's **Viewing as** menu shows what each party sees:
+locked cards, blurred thumbnails, and hidden entities and issues for documents they cannot open.
+It is a view only; the receiver still serves every event and file to anyone who can reach it.
+
+The **Files** view shows the same state as folders (boxes) and files (documents, named
+`<date>_<title>.pdf`), with an inspector for a file's pages and fields. **Data models** lists each
+document type with the union of fields seen across its documents, and how many documents fill each.
+
 ## Tuned values (from measurements on tonight's pages)
 
 | Setting | Value | Evidence |

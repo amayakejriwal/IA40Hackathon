@@ -68,6 +68,19 @@
   .fields dd { margin:0; }
   .fields .new { animation:enter .5s; }
   .note { margin-top:9px; font-size:12px; color:var(--blue); }
+  .access { display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px; background:var(--soft); color:var(--mut); }
+  .access.public { background:#e6f6ea; color:#1e7b34; }
+  .access.restricted { background:#fdecec; color:#b42318; }
+  .access.privileged { background:#efe8ff; color:#6b3fd4; }
+  .access small { font-weight:400; opacity:.85; }
+  .doc.locked .lockbody { display:flex; align-items:center; gap:12px; margin:14px 0 4px; color:var(--mut); font-size:12.5px; }
+  .doc.locked .lockbody b { display:block; color:var(--ink); font-size:13px; }
+  .lockicon { width:36px; height:36px; border-radius:10px; background:var(--soft); display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
+  .inc.locked img { filter:blur(6px) grayscale(1); cursor:default; }
+  .viewer { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--mut); }
+  .viewer select { appearance:none; -webkit-appearance:none; border:0; background:var(--card); box-shadow:var(--shadow); border-radius:99px; padding:6px 28px 6px 12px; font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); cursor:pointer;
+    background-image:linear-gradient(45deg, transparent 50%, var(--mut) 50%), linear-gradient(135deg, var(--mut) 50%, transparent 50%);
+    background-position:calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size:5px 5px; background-repeat:no-repeat; }
 
   /* right column */
   .panel { background:var(--card); border-radius:16px; padding:14px 16px; box-shadow:var(--shadow); margin-bottom:14px; }
@@ -96,6 +109,47 @@
   .lightbox.show { display:flex; animation:enter .25s ease-out; }
   .lightbox img { max-width:min(96vw, 1100px); max-height:88vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.18); background:#fff; }
   .lightbox .cap { font-size:13px; color:var(--mut); }
+  /* files view */
+  .seg { display:flex; background:var(--card); box-shadow:var(--shadow); border-radius:99px; padding:3px; }
+  .seg button { border:0; background:none; border-radius:99px; padding:5px 14px; font:inherit; font-size:12.5px; font-weight:600; color:var(--mut); cursor:pointer; }
+  .seg button.on { background:var(--ink); color:#fff; }
+  #filesview { display:none; grid-template-columns:220px minmax(0,1fr) 380px; gap:18px; padding:6px 32px 120px; }
+  body.files #filesview { display:grid; } body.files main { display:none; }
+  @media (max-width:1100px) { #filesview { grid-template-columns:1fr; } }
+  .side { background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:12px 8px; align-self:start; }
+  .side h2 { padding:0 8px; margin-top:8px; }
+  .side .it { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .side .it:hover { background:var(--soft); }
+  .side .it.on { background:var(--blue); color:#fff; }
+  .side .it.on small { color:rgba(255,255,255,.8); }
+  .side .it i { width:9px; height:9px; border-radius:3px; flex:none; }
+  .side .it span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .side .it small { color:var(--mut); font-size:11.5px; }
+  .list { background:var(--card); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; align-self:start; }
+  .list table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .list th { text-align:left; font-size:11px; font-weight:600; color:var(--mut); padding:10px 12px; border-bottom:1px solid var(--line); }
+  .list td { padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .list tr:last-child td { border-bottom:0; }
+  .list tbody tr { cursor:pointer; }
+  .list tbody tr:hover { background:var(--soft); }
+  .list tbody tr.on { background:#e8f1fd; }
+  .list .fname { display:flex; align-items:center; gap:8px; font-weight:500; max-width:320px; overflow:hidden; text-overflow:ellipsis; }
+  .list .ficon { width:22px; height:28px; border-radius:4px; background:var(--soft); border:1px solid var(--line); flex:none; display:flex; align-items:center; justify-content:center; font-size:11px; }
+  .list .mut { color:var(--mut); }
+  .list .access { margin:0; }
+  .schema { padding:12px 14px; border-bottom:1px solid var(--line); font-size:12.5px; }
+  .schema b { font-size:13px; }
+  .schema .chips { margin-top:8px; }
+  .insp { background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:16px; align-self:start; position:sticky; top:12px; }
+  .insp h3 { margin:0; font-size:15px; }
+  .insp .fn { font-size:12px; color:var(--mut); margin:3px 0 12px; word-break:break-all; }
+  .insp .pv { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
+  .insp .pv img { height:150px; border-radius:6px; border:1px solid var(--line); cursor:zoom-in; }
+  .insp table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .insp td { padding:6px 0; border-top:1px solid var(--line); vertical-align:top; }
+  .insp td:first-child { color:var(--mut); width:40%; padding-right:10px; }
+  .insp td.missing { color:var(--line); }
+  .insp .sec { font-size:11px; font-weight:600; color:var(--mut); text-transform:uppercase; letter-spacing:.06em; margin:14px 0 6px; }
   .done-banner { background:var(--card); border-radius:16px; padding:14px 18px; box-shadow:var(--shadow); margin:0 32px 12px; font-weight:500; display:none; }
 </style>
 </head>
@@ -108,6 +162,8 @@
     <div class="counter"><b id="c-ents">0</b><span>people &amp; orgs</span></div>
     <div class="counter"><b id="c-issues">0</b><span>need attention</span></div>
   </div>
+  <div class="seg" id="seg"><button data-view="board" class="on">Board</button><button data-view="files">Files</button></div>
+  <div class="viewer">Viewing as <select id="viewer"><option>Admin</option><option>Public</option></select></div>
   <div class="controls">
     <button id="play">▶ Replay</button><button data-speed="1" class="on">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button>
   </div>
@@ -122,6 +178,11 @@
     <div class="panel"><h2>Agent</h2><div class="feed" id="feed"></div></div>
   </div>
 </main>
+<section id="filesview">
+  <div class="side" id="fside"></div>
+  <div class="list" id="flist"></div>
+  <div class="insp" id="finsp"><div class="empty">Select a file</div></div>
+</section>
 <div class="lightbox" id="lightbox"><img id="lbimg" alt=""><div class="cap" id="lbcap"></div></div>
 <div class="voicebar" id="voicebar"><span>🎙</span><span id="vtext"></span><span class="a" id="vaction"></span></div>
 
@@ -137,10 +198,91 @@ const PALETTE = ['#0a84ff', '#ff9f0a', '#30b0c7', '#bf5af2', '#34c759', '#ff375f
 const colors = {};
 const col = k => colors[k] || (colors[k] = PALETTE[Object.keys(colors).length % PALETTE.length]);
 
+// Access levels. Each doc may carry access {level, parties[], reason}. The viewer switch shows what
+// each party would see: Admin sees all; public docs are open to everyone; internal to any named
+// party; restricted and privileged only to the parties listed. This is a view, not enforcement:
+// the receiver still serves every event and file to anyone who can reach it.
+const LEVEL = { public:'Public', internal:'Internal', restricted:'Restricted', privileged:'Privileged' };
+let viewer = 'Admin';
+const lvl = d => (d && d.access && d.access.level) || 'internal';
+function canSee(d) {
+  if (!d || viewer === 'Admin') return true;
+  const l = lvl(d);
+  if (l === 'public') return true;
+  if (viewer === 'Public') return false;
+  if (l === 'internal') return true;
+  return (d.access.parties || []).includes(viewer);
+}
+const pageLocked = n => { const p = S.pages[n]; return !!(p && p.doc && !canSee(S.docs[p.doc])); };
+const entVisible = e => [...e.docs].some(id => !S.docs[id] || canSee(S.docs[id]));
+const issueVisible = i => !S.docs[i.doc] || canSee(S.docs[i.doc]);
+function accessBadge(d) {
+  const l = lvl(d), who = (d.access && d.access.parties || []).join(', ');
+  return `<div class="access ${l}">${l === 'public' ? '' : '🔒 '}${LEVEL[l]}${who && l !== 'public' ? ` <small>· ${esc(who)}</small>` : ''}</div>`;
+}
+function syncViewers() {
+  const parties = new Set();
+  Object.values(S.docs).forEach(d => (d.access && d.access.parties || []).forEach(p => parties.add(p)));
+  const want = ['Admin', ...[...parties].sort(), 'Public'];
+  const sel = $('viewer');
+  if ([...sel.options].map(o => o.value).join('|') === want.join('|')) return;
+  sel.innerHTML = want.map(v => `<option${v === viewer ? ' selected' : ''}>${esc(v)}</option>`).join('');
+}
+function rerender() {
+  Object.keys(S.pages).forEach(n => renderIncoming(n));
+  Object.values(S.docs).forEach(d => renderDoc(d, false, d, true));
+  renderEntities(); renderIssues(false); counters(); renderFiles();
+}
+
+// Files view: folders are boxes, files are documents, data models are the union of fields per doc type.
+let fsel = 'all', fdoc = null;
+const slug = t => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
+const fileName = d => `${d.date || 'undated'}_${slug(d.title)}.pdf`;
+const models = () => {
+  const m = {};
+  Object.values(S.docs).forEach(d => { const k = d.doctype || 'Document'; (m[k] = m[k] || { docs:[], fields:[] }).docs.push(d);
+    Object.keys(d.fields || {}).forEach(f => { if (!m[k].fields.includes(f)) m[k].fields.push(f); }); });
+  return m;
+};
+function renderFiles() {
+  if (!document.body.classList.contains('files')) return;
+  const docs = Object.values(S.docs), M = models();
+  const boxes = S.boxes.map(k => docs.find(d => d.boxkey === k)).filter(Boolean);
+  $('fside').innerHTML = `<div class="it ${fsel === 'all' ? 'on' : ''}" data-f="all"><span>All documents</span><small>${docs.length}</small></div>
+    <h2>Folders</h2>${boxes.map(b => `<div class="it ${fsel === 'box:' + b.boxkey ? 'on' : ''}" data-f="box:${esc(b.boxkey)}"><i style="background:${col(b.boxkey)}"></i><span>${esc(b.box)}</span><small>${docs.filter(d => d.boxkey === b.boxkey).length}</small></div>`).join('') || '<div class="empty" style="padding:0 8px">None yet</div>'}
+    <h2>Data models</h2>${Object.entries(M).map(([k, v]) => `<div class="it ${fsel === 'model:' + k ? 'on' : ''}" data-f="model:${esc(k)}"><span>${esc(k)}</span><small>${v.fields.length} field${v.fields.length === 1 ? '' : 's'}</small></div>`).join('') || '<div class="empty" style="padding:0 8px">None yet</div>'}`;
+  const shown = docs.filter(d => fsel === 'all' || fsel === 'box:' + d.boxkey || fsel === 'model:' + (d.doctype || 'Document'));
+  const mk = fsel.startsWith('model:') && M[fsel.slice(6)];
+  $('flist').innerHTML = (mk ? `<div class="schema"><b>${esc(fsel.slice(6))}</b> · data model inferred from ${mk.docs.length} document${mk.docs.length > 1 ? 's' : ''}<div class="chips">${mk.fields.map(f => `<span class="chip">${esc(f)} <b>${mk.docs.filter(d => d.fields && d.fields[f]).length}/${mk.docs.length}</b></span>`).join('')}</div></div>` : '') +
+    (shown.length ? `<table><thead><tr><th>Name</th><th>Type</th><th>Date</th><th>Pages</th><th>Access</th></tr></thead><tbody>${shown.map(d => {
+      const ok = canSee(d);
+      return `<tr class="${d.id === fdoc ? 'on' : ''}" data-d="${d.id}"><td><div class="fname"><span class="ficon">${ok ? 'PDF' : '🔒'}</span>${ok ? esc(fileName(d)) : 'Restricted document'}</div></td>
+        <td class="mut">${esc(d.doctype)}</td><td class="mut">${ok ? esc(d.date) : '—'}</td><td class="mut">${d.pages.length}</td><td>${accessBadge(d)}</td></tr>`; }).join('')}</tbody></table>`
+      : '<div class="empty" style="padding:14px">No documents yet</div>');
+  const d = S.docs[fdoc];
+  if (!d) { $('finsp').innerHTML = '<div class="empty">Select a file to see its pages and fields</div>'; return; }
+  if (!canSee(d)) { $('finsp').innerHTML = `<h3>Restricted document</h3><div class="fn">${esc(d.doctype)} · ${d.pages.length} page${d.pages.length > 1 ? 's' : ''}</div>
+    <div class="lockbody" style="display:flex;gap:12px;align-items:center"><div class="lockicon">🔒</div><div>Hidden from ${esc(viewer)}.</div></div>${accessBadge(d)}`; return; }
+  const model = M[d.doctype || 'Document'];
+  $('finsp').innerHTML = `<h3>${esc(d.title)}</h3><div class="fn">${esc(d.box)} / ${esc(fileName(d))}</div>
+    <div class="pv">${d.pages.map(n => `<img src="${S.pages[n]?.img || ''}" data-n="${n}" alt="">`).join('')}</div>
+    <div class="sec">${esc(d.doctype)} fields</div>
+    <table>${model.fields.map(f => d.fields && d.fields[f] ? `<tr><td>${esc(f)}</td><td>${esc(d.fields[f])}</td></tr>` : `<tr><td>${esc(f)}</td><td class="missing">—</td></tr>`).join('')}</table>
+    <div class="sec">File</div>
+    <table><tr><td>Folder</td><td>${esc(d.box)}</td></tr><tr><td>Pages</td><td>${d.pages.map(n => '#' + n).join(', ')}</td></tr>
+      <tr><td>Status</td><td>${d.status === 'complete' ? 'Complete' : 'Assembling'}</td></tr>${d.note ? `<tr><td>Agent note</td><td>${esc(d.note)}</td></tr>` : ''}</table>
+    ${accessBadge(d)}${d.access && d.access.reason ? `<span style="font-size:12px;color:var(--mut)"> ${esc(d.access.reason)}</span>` : ''}`;
+}
+$('fside').onclick = e => { const it = e.target.closest('[data-f]'); if (it) { fsel = it.dataset.f; renderFiles(); } };
+$('flist').onclick = e => { const tr = e.target.closest('[data-d]'); if (tr) { fdoc = tr.dataset.d; renderFiles(); } };
+$('seg').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return;
+  document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
+  document.body.classList.toggle('files', b.dataset.view === 'files'); renderFiles(); };
+
 function bump(id, v) { const el = $(id); if (el.textContent != v) { el.textContent = v; el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 700); } }
 function counters() {
   bump('c-pages', Object.keys(S.pages).length); bump('c-docs', Object.keys(S.docs).length);
-  bump('c-ents', Object.values(S.ents).filter(e => e.etype !== 'address').length); bump('c-issues', S.issues.length);
+  bump('c-ents', Object.values(S.ents).filter(e => e.etype !== 'address' && entVisible(e)).length); bump('c-issues', S.issues.filter(issueVisible).length);
 }
 
 function apply(e) {
@@ -160,6 +302,8 @@ function apply(e) {
     if (!S.boxes.includes(e.boxkey)) S.boxes.push(e.boxkey);
     e.pages.forEach(n => { if (S.pages[n]) { S.pages[n].doc = e.id; renderIncoming(n); } });
     renderDoc(e, isNew, prev);
+    syncViewers();
+    if (prev && lvl(prev) !== lvl(e)) { renderEntities(); renderIssues(false); }
   }
   if (e.type === 'entity') {
     const k = e.name; const was = S.ents[k];
@@ -174,12 +318,16 @@ function apply(e) {
     if (!e.dropped) showVoice(e);
   }
   counters();
+  renderFiles();
 }
 
 function renderIncoming(n, isNew) {
   const p = S.pages[n]; let el = $('inc-' + n);
   if (!el) { el = document.createElement('div'); el.id = 'inc-' + n; el.className = 'inc enter'; $('incoming').prepend(el); }
-  const status = p.doc ? `<span class="s filed">→ ${p.doc} · ${esc(S.docs[p.doc]?.boxkey)}</span>`
+  const locked = pageLocked(n);
+  el.classList.toggle('locked', locked);
+  const status = locked ? `<span class="s">🔒 ${LEVEL[lvl(S.docs[p.doc])]} · ${p.doc}</span>`
+    : p.doc ? `<span class="s filed">→ ${p.doc} · ${esc(S.docs[p.doc]?.boxkey)}</span>`
     : p.state === 'captured' ? `<span class="s"><span class="spin"></span>uploading</span>`
     : p.state === 'reading' ? `<span class="s"><span class="spin"></span>reading</span>`
     : /DID NOT READ/.test(p.verdict || '') ? `<span class="s" style="color:var(--red)">didn't read — retake</span>`
@@ -187,7 +335,7 @@ function renderIncoming(n, isNew) {
   el.innerHTML = `<img src="${p.img}" data-n="${n}" alt=""><div><div class="n">Page ${n}</div>${status}</div>`;
 }
 
-function renderDoc(d, isNew, prev) {
+function renderDoc(d, isNew, prev, quiet) {
   let box = $('box-' + d.boxkey);
   if (!box) {
     if ($('boxes').querySelector('.empty')) $('boxes').innerHTML = '';
@@ -197,7 +345,19 @@ function renderDoc(d, isNew, prev) {
   }
   let card = $('doc-' + d.id);
   if (!card) { card = document.createElement('div'); card.id = 'doc-' + d.id; card.className = 'doc enter'; card.style.setProperty('--c', col(d.boxkey)); box.querySelector('.docs').appendChild(card); }
-  else { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
+  else if (!quiet) { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
+  card.classList.toggle('locked', !canSee(d));
+  if (!canSee(d)) {
+    card.innerHTML = `
+    <div class="top"><div><h3>Restricted document</h3><div class="meta">${esc(d.doctype)} · ${d.id}</div></div>
+      <span class="pill ${d.status}">${d.status === 'complete' ? 'Complete' : 'Assembling'}</span></div>
+    <div class="lockbody"><div class="lockicon">🔒</div><div><b>${d.pages.length} page${d.pages.length > 1 ? 's' : ''} hidden from ${esc(viewer)}</b>
+      Visible to ${esc(lvl(d) === 'internal' ? 'named parties' : ['Admin', ...(d.access.parties || [])].join(', '))}</div></div>
+    ${accessBadge(d)}`;
+    const count = Object.values(S.docs).filter(x => x.boxkey === d.boxkey).length;
+    $('boxn-' + d.boxkey).textContent = `${count} document${count > 1 ? 's' : ''}`;
+    return;
+  }
   const oldKeys = new Set(Object.keys(prev?.fields || {}));
   const waiting = d.status === 'open' && /page 1 not scanned/.test(d.note || '') ? `<div class="slot">page 1<br>?</div>` : '';
   const waiting2 = d.status === 'open' && /waiting for page 2/.test(d.note || '') ? `<div class="slot">page 2<br>?</div>` : '';
@@ -207,7 +367,8 @@ function renderDoc(d, isNew, prev) {
     <div class="thumbs">${waiting}${d.pages.map((n, i) => `<figure><img src="${S.pages[n]?.img || ''}" data-n="${n}" alt=""><figcaption>p${i + 1 + (waiting ? 1 : 0)} · #${n}</figcaption></figure>`).join('')}${waiting2}</div>
     <dl class="fields">${Object.entries(d.fields).slice(0, 7).map(([k, v]) =>
       `<dt>${esc(k.replace(/_/g, ' '))}</dt><dd class="${prev && !oldKeys.has(k) ? 'new' : ''}">${esc(v)}</dd>`).join('')}</dl>
-    ${d.note ? `<div class="note">${esc(d.note)}</div>` : ''}`;
+    ${d.note ? `<div class="note">${esc(d.note)}</div>` : ''}
+    ${accessBadge(d)}${d.access && d.access.reason ? `<span class="meta"> ${esc(d.access.reason)}</span>` : ''}`;
   const count = Object.values(S.docs).filter(x => x.boxkey === d.boxkey).length;
   $('boxn-' + d.boxkey).textContent = `${count} document${count > 1 ? 's' : ''}`;
   if (isNew) card.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -215,13 +376,15 @@ function renderDoc(d, isNew, prev) {
 
 function renderEntities(changed, isNew) {
   const groups = {};
-  Object.values(S.ents).forEach(e => (groups[e.etype] = groups[e.etype] || []).push(e));
+  Object.values(S.ents).filter(entVisible).forEach(e => (groups[e.etype] = groups[e.etype] || []).push(e));
   $('entities').innerHTML = Object.keys(ETYPE).filter(t => groups[t]).map(t => `<div class="etype">${ETYPE[t]}</div><div class="chips">${
     groups[t].map(e => `<span class="chip ${e.name === changed ? (isNew ? 'enter' : 'grow') : ''}" title="Seen as: ${esc([...e.seen].join(' · '))}">${esc(e.name)} <b>${e.docs.size}</b></span>`).join('')}</div>`).join('');
 }
 
 function renderIssues(isNew) {
-  $('issues').innerHTML = S.issues.map((i, k) => `<div class="issue ${isNew && k === S.issues.length - 1 ? 'enter' : ''}" style="--sev:${SEV[i.sev]}">
+  const shown = S.issues.filter(issueVisible);
+  if (!shown.length) { $('issues').innerHTML = '<div class="empty">Nothing yet</div>'; return; }
+  $('issues').innerHTML = shown.map((i, k) => `<div class="issue ${isNew && i === S.issues[S.issues.length - 1] ? 'enter' : ''}" style="--sev:${SEV[i.sev]}">
     <div class="h">${i.sev === 'high' ? 'Discrepancy' : i.sev === 'med' ? 'Conflict across documents' : 'Note'} · ${esc(i.doc)}</div>${esc(i.text)}</div>`).join('');
 }
 
@@ -237,9 +400,10 @@ function showVoice(e) {
 
 // Click any page thumbnail to see the full scan (thumbnail first, then the full-resolution master).
 document.addEventListener('click', e => {
-  const img = e.target.closest('.inc img, .thumbs img');
+  const img = e.target.closest('.inc img, .thumbs img, .insp .pv img');
   if (img) {
     const n = +(img.dataset.n || 0);
+    if (pageLocked(n)) return;
     const full = img.getAttribute('src').replace('.thumb.jpg', '.jpg');
     $('lbimg').src = img.getAttribute('src');
     const hi = new Image(); hi.onload = () => { if ($('lightbox').classList.contains('show')) $('lbimg').src = full; }; hi.src = full;
@@ -261,7 +425,9 @@ function reset() {
   $('entities').innerHTML = '<div class="empty">None yet</div>'; $('issues').innerHTML = '<div class="empty">Nothing yet</div>';
   $('feed').innerHTML = ''; $('banner').style.display = 'none'; $('dot').className = 'dot'; $('stitle').textContent = 'Scanning session';
   ['c-pages', 'c-docs', 'c-ents', 'c-issues'].forEach(id => $(id).textContent = 0);
+  syncViewers(); fdoc = null; renderFiles();
 }
+$('viewer').onchange = e => { viewer = e.target.value; rerender(); };
 function play() { reset(); window.REPLAY.forEach(e => timers.push(setTimeout(() => apply(e), e.at * 1000 / speed))); }
 $('play').onclick = play;
 document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => {
