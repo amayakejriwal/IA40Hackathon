@@ -66,6 +66,16 @@ FIELD_CAPTURE_ADVERTISE_IP=169.254.19.19 python3 -u receiver.py | tee -a receive
 Reinstall or clear any typed host first: a typed host overrides Bonjour. Keep the cable in; the
 link-local address exists only while it is plugged in. Measured 0.9 ms round trip, no loss.
 
+### Phone mirror for demo recordings
+
+`receiver/tools/phonescreen` mirrors the USB iPhone's screen (the source QuickTime uses) as MJPEG on
+`:8766/stream`, and the live board shows it bottom-right whenever it is running:
+
+```sh
+swiftc -O receiver/tools/phonescreen.swift -o receiver/tools/phonescreen
+receiver/tools/phonescreen      # first run asks for camera access; phone plugged in and unlocked
+```
+
 ### Live agent
 
 The board files pages into documents only when an agent posts decisions. To run the agent

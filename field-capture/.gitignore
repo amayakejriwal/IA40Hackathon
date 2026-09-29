@@ -7,3 +7,4 @@ pipeline/live/img
 pipeline/ocrfull
 receiver/tools/ocrfull
 receiver/tools/ocrprobe
+receiver/tools/phonescreen
