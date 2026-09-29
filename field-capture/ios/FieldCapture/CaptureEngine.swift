@@ -294,6 +294,8 @@ extension CaptureEngine: AVCaptureVideoDataOutputSampleBufferDelegate {
         guard let pb = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let now = CACurrentMediaTime()
         portrait = CGSize(width: CVPixelBufferGetHeight(pb), height: CVPixelBufferGetWidth(pb))
+        // Not scanning: no page detection and no outline, so the preview stays still before Start.
+        if paused { lastQuad = nil; return emit(nil, .paused) }
         let sig = Self.signature(pb)
         currentPB = pb
         let req = VNDetectDocumentSegmentationRequest()
