@@ -1,0 +1,1 @@
+ALTER TABLE `documents` ADD `field_confidence` text;

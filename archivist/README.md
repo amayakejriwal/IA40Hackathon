@@ -57,6 +57,27 @@ Re-sending identical bytes returns 200. Sending different bytes for the same id 
 
 For phone pages, the agent's `get_capture_context` tool returns the previous pages and recent voice notes. That lets it continue a multi-page document across consecutive captures.
 
+## Filing and search
+
+Documents (a group of pages) are filed as a unit, by their type's **filing rule**, into folders a person can browse:
+
+```
+Finance / Invoices / Acme Supply Co / Invoice 4471     Jul 27, 2026 · 2 pages
+Medical / Jane Doe / Lab result, Harbor Clinic         Aug 12, 2026 · 1 page
+Taxes / 2025 / W-2 from Harbor Clinic
+Home / Utility bills / Pacific Gas and Electric / ...  (a type the agent created)
+```
+
+- **Rules:** a rule is a section, an optional collection, a field that gets its own folder (vendor, patient), a date field, and a name template like `Invoice {invoice_number}`. Seeded types have rules. When the agent creates a type, it must supply one.
+- **Filing:** `file_document` (`src/lib/filing.ts`) builds the path, names the document, creates folders with plain-English descriptions, and prunes folders left empty.
+- **Re-filing:** it re-files as later pages fill in fields; the invoice above moved into the vendor folder once page 2 named the vendor.
+- **Hand placement:** a document moved by hand (`move_document`) stays where it was put.
+- **Librarian edits stick:** folders remember which rule slot they were made for, so a folder the Librarian renames or moves keeps receiving the same kind of document.
+
+Search (`/api/search?q=`, `src/lib/search.ts`) covers each document's name, type, folder, every extracted field and its full text. Every word must match. Each result shows its name, type, date, page count and breadcrumb, plus why it matched ("Vendor: Acme Supply Co", or a text snippet). The search bar supports `/` or Cmd-K to focus and Esc to clear. The Library tab is a folder browser with a breadcrumb.
+
+To try it without an API key, run `npx tsx scripts/demo-library.ts`, which adds 8 realistic, already-extracted documents and files them. Run it with `--clean` to remove them.
+
 ## API (web UI; `POST /api/documents` also works for other clients)
 
 | Method | Path | |
@@ -70,6 +91,7 @@ For phone pages, the agent's `get_capture_context` tool returns the previous pag
 | `GET` | `/api/files/:id` | original file |
 | `POST` | `/upload/:batch/:id/:kind` | field-capture phone protocol (above) |
 | `GET` | `/ping` | liveness check |
+| `GET` | `/api/search?q=` | library search |
 | `GET` | `/api/board?scope=` | operator board data (`all`, `web`, or a session id) |
 | `GET` | `/api/documents/:id/ocr` | word-level OCR for the box overlay |
 | `GET` | `/api/voice/:id` | voice note audio |

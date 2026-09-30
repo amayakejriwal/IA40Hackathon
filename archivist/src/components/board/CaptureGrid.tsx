@@ -1,5 +1,6 @@
 import type { BoardPage, BoardVoiceNote } from "@/lib/board";
-import { fileUrl, pageLabel, pageState } from "./format";
+import { pageLabel, pageState } from "./format";
+import { PageImage } from "./PageImage";
 
 type Item = { t: number; page?: BoardPage; note?: BoardVoiceNote };
 
@@ -50,8 +51,7 @@ export function CaptureGrid({
           <div key={id} className={`page${p.status === "rejected" ? " dim" : ""}${fresh}`} onClick={() => onOpen(p.id)}>
             <div className="sheet">
               {p.mimeType.startsWith("image/") ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img loading="lazy" src={fileUrl(p.id)} alt={pageLabel(p)} />
+                <PageImage id={p.id} alt={pageLabel(p)} lazy />
               ) : (
                 <span className="state">{p.mimeType === "application/pdf" ? "PDF" : "File"}</span>
               )}

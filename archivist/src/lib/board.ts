@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, isNull, max, type SQL } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { breadcrumb, humanDate } from "@/lib/filing";
 
 /**
  * Everything the operator board shows for one scope: a phone capture session,
@@ -58,7 +59,12 @@ export type BoardVoiceNote = {
 
 export type BoardGroup = {
   id: string;
+  /** Human-readable name, e.g. "Invoice 4471". */
   title: string;
+  /** "Jul 27, 2026", from the type's date field. */
+  date: string | null;
+  /** "Finance › Invoices › Acme Supply Co". */
+  breadcrumb: string | null;
   typeName: string | null;
   expectedCount: number | null;
   receivedCount: number;
@@ -200,11 +206,16 @@ export async function getBoard(requested?: string | null): Promise<Board> {
     for (const [k, v] of Object.entries(doc.extractedFields ?? {})) if (v != null && v !== "" && !(k in entry.fields)) entry.fields[k] = v;
     byGroup.set(doc.groupId, entry);
   }
+  const folderPaths = new Map(
+    (await db.select({ id: schema.folders.id, path: schema.folders.path }).from(schema.folders)).map((f) => [f.id, f.path]),
+  );
   const groups: BoardGroup[] = groupRows.map(({ group, typeName }) => {
     const entry = byGroup.get(group.id);
     return {
       id: group.id,
-      title: group.title,
+      title: group.displayName ?? group.title,
+      date: humanDate(group.documentDate),
+      breadcrumb: group.folderId ? breadcrumb(folderPaths.get(group.folderId)) : null,
       typeName: typeName ?? null,
       expectedCount: group.expectedCount,
       receivedCount: group.receivedCount,

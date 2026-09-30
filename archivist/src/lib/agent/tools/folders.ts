@@ -1,7 +1,8 @@
-import { eq, isNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, newId, schema } from "@/lib/db";
 import type { Folder } from "@/lib/db/schema";
+import { breadcrumb, fileDocumentOfPage, getRootFolder, placeDocument } from "@/lib/filing";
 import { defineTool } from "./define";
 
 async function getFolder(id: string) {
@@ -91,22 +92,34 @@ export const moveFolder = defineTool({
   },
 });
 
-export const moveDocument = defineTool({
-  name: "move_document",
-  description: "File a document into a folder.",
-  parameters: z.object({ documentId: z.string(), folderId: z.string() }),
+export const fileDocument = defineTool({
+  name: "file_document",
+  description:
+    "File the document this page belongs to (all of its pages) into the library using its type's filing rule, e.g. Finance / Invoices / Acme Supply Co, and give it a human-readable name such as 'Invoice 4471'. Creates folders as needed. Call it after save_fields; safe to call again as more pages arrive.",
+  parameters: z.object({ documentId: z.string().describe("Any page of the document") }),
   step: "filing",
-  async execute({ documentId, folderId }) {
-    const folder = await getFolder(folderId);
-    await db.update(schema.documents).set({ folderId }).where(eq(schema.documents.id, documentId));
-    return { documentId, path: folder.path };
+  async execute({ documentId }) {
+    const filed = await fileDocumentOfPage(documentId);
+    return { ...filed, breadcrumb: breadcrumb(filed.path) };
   },
 });
 
-export async function getRootFolder() {
-  const [root] = await db.select().from(schema.folders).where(isNull(schema.folders.parentId)).limit(1);
-  if (!root) throw new Error("Root folder missing — run `npm run db:seed`");
-  return root;
-}
+export const moveDocument = defineTool({
+  name: "move_document",
+  description:
+    "Move a whole document (every page of the group this page belongs to) into a folder by hand. It then stays there: automatic filing will not move it again. Use only when the filing rule put it somewhere clearly wrong.",
+  parameters: z.object({ documentId: z.string().describe("Any page of the document"), folderId: z.string() }),
+  step: "filing",
+  async execute({ documentId, folderId }) {
+    const folder = await getFolder(folderId);
+    const [page] = await db.select().from(schema.documents).where(eq(schema.documents.id, documentId));
+    if (!page) throw new Error(`Document ${documentId} not found`);
+    if (page.groupId) await placeDocument(page.groupId, folderId, "agent");
+    else await db.update(schema.documents).set({ folderId }).where(eq(schema.documents.id, documentId));
+    return { documentId, path: folder.path, breadcrumb: breadcrumb(folder.path) };
+  },
+});
 
-export const folderTools = [getFolderTree, createFolder, renameFolder, moveFolder, moveDocument];
+export { getRootFolder };
+
+export const folderTools = [getFolderTree, createFolder, renameFolder, moveFolder, fileDocument, moveDocument];

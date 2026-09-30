@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AgentEvent, Document, DocumentGroup, DocumentType, Folder } from "@/lib/db/schema";
+import { breadcrumb, humanDate, typeLabel } from "@/lib/format";
 import { fileUrl } from "./format";
+import { PageImage } from "./PageImage";
 
 type Detail = { document: Document; type: DocumentType | null; group: DocumentGroup | null; folder: Folder | null };
 type PhoneOcr = { lines: { text: string; words?: { text: string; box: number[] }[] }[] };
@@ -76,8 +78,7 @@ export function PageDialog({ id, onClose }: { id: string | null; onClose: () => 
               <iframe src={fileUrl(doc.id)} title={doc.filename} />
             ) : doc.mimeType.startsWith("image/") ? (
               <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fileUrl(doc.id)} alt={doc.filename} />
+                <PageImage id={doc.id} alt={doc.filename} className="page-full" />
                 {showBoxes && (
                   <svg viewBox="0 0 1 1" preserveAspectRatio="none">
                     {words.map((w, i) => (
@@ -99,7 +100,9 @@ export function PageDialog({ id, onClose }: { id: string | null; onClose: () => 
                     ? "Marked for retake on the phone"
                     : doc.status === "error"
                       ? "Could not be processed"
-                      : (detail.type?.name.replace(/_/g, " ") ?? "Unclassified")}
+                      : detail.type && detail.type.name !== "other"
+                        ? typeLabel(detail.type.name)
+                        : "Unclassified"}
               </div>
             </div>
 
@@ -109,14 +112,15 @@ export function PageDialog({ id, onClose }: { id: string | null; onClose: () => 
               {detail.folder && (
                 <>
                   <dt>Folder</dt>
-                  <dd>{detail.folder.path === "/" ? "Library" : detail.folder.path.slice(1).replace(/\//g, " › ")}</dd>
+                  <dd>{breadcrumb(detail.folder.path)}</dd>
                 </>
               )}
               {detail.group && (
                 <>
                   <dt>Document</dt>
                   <dd>
-                    {detail.group.title}
+                    {detail.group.displayName ?? detail.group.title}
+                    {detail.group.documentDate ? `, ${humanDate(detail.group.documentDate)}` : ""}
                     {detail.group.expectedCount ? `, ${detail.group.receivedCount} of ${detail.group.expectedCount} pages` : ""}
                   </dd>
                 </>

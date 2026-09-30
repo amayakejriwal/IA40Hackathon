@@ -1,14 +1,16 @@
 import { Agent, run } from "@openai/agents";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
 import { hasOpenAI, openaiModel } from "@/lib/config";
 import { logEvent, setDocumentStatus } from "@/lib/events";
 import { ARCHIVIST_INSTRUCTIONS } from "./prompts";
 import type { AgentContext } from "./tools/define";
 import { ocrDocument, ocrTools } from "./tools/ocr";
-import { classifyDocument, classifyTools, setDocumentType } from "./tools/classify";
-import { typeTools } from "./tools/types";
+import { classifyTools, setDocumentType } from "./tools/classify";
+import { listDocumentTypes, typeTools } from "./tools/types";
 import { addToGroup, createGroup, findCandidateGroups, groupTools } from "./tools/groups";
-import { extractFields, extractTools, saveFields } from "./tools/extract";
-import { folderTools, getRootFolder, moveDocument } from "./tools/folders";
+import { extractTools, saveFields } from "./tools/extract";
+import { fileDocument, folderTools } from "./tools/folders";
 import { getDocument, libraryTools } from "./tools/library";
 import { captureTools, getCaptureContext } from "./tools/capture";
 
@@ -35,6 +37,10 @@ export async function runDocumentPipeline(documentId: string, jobId: string) {
     await runStubPipeline(ctx, documentId);
   }
 
+  // Safety net: a grouped page the agent forgot to file still lands in the library.
+  const [page] = await db.select().from(schema.documents).where(eq(schema.documents.id, documentId));
+  if (page?.groupId && !page.folderId) await fileDocument.invoke({ documentId }, ctx);
+
   await setDocumentStatus(documentId, "done", jobId);
 }
 
@@ -47,11 +53,14 @@ async function runStubPipeline(ctx: AgentContext, documentId: string) {
   const doc = await getDocument.invoke({ documentId }, ctx);
   await ocrDocument.invoke({ documentId }, ctx);
 
-  const { documentTypeId, confidence } = await classifyDocument.invoke({ documentId }, ctx);
-  if (documentTypeId) await setDocumentType.invoke({ documentId, documentTypeId, confidence }, ctx);
+  const types = await listDocumentTypes.invoke({}, ctx);
+  const documentTypeId = types.find((t) => t.name === "other")?.id ?? null;
+  if (documentTypeId) {
+    await setDocumentType.invoke({ documentId, documentTypeId, confidence: 0, reasoning: "stub pipeline" }, ctx);
+  }
 
   await getCaptureContext.invoke({ documentId }, ctx);
-  const [candidate] = await findCandidateGroups.invoke({ documentTypeId }, ctx);
+  const [candidate] = await findCandidateGroups.invoke({ documentTypeId, entities: [] }, ctx);
   const group =
     candidate ??
     (await createGroup.invoke(
@@ -60,12 +69,10 @@ async function runStubPipeline(ctx: AgentContext, documentId: string) {
     ));
   await addToGroup.invoke({ documentId, groupId: group.id }, ctx);
 
-  const { fields } = await extractFields.invoke({ documentId }, ctx);
   await saveFields.invoke(
-    { documentId, title: doc.filename, summary: "Stub summary", fieldsJson: JSON.stringify(fields) },
+    { documentId, title: doc.filename, summary: "Stub summary", fieldsJson: "{}", confidenceJson: "{}" },
     ctx,
   );
 
-  const root = await getRootFolder();
-  await moveDocument.invoke({ documentId, folderId: root.id }, ctx);
+  await fileDocument.invoke({ documentId }, ctx);
 }

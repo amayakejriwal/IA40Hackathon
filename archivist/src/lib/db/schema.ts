@@ -25,6 +25,40 @@ export const DOCUMENT_STATUSES = [
 ] as const;
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 
+/** What the OCR pass learned about a page beyond its text; feeds classification and grouping. */
+export type PageAnalysis = {
+  /** Where this page sits in its document. "single" = a one-page document. */
+  pageRole: "single" | "first" | "continuation" | "last";
+  /** A printed page marker such as "Page 2 of 3", or null. */
+  pageMarker: string | null;
+  /** Best guess at what kind of document this is, in a few words, e.g. "utility bill". */
+  documentKind: string;
+  /** Identifiers that tie documents together: people, orgs, account/case/invoice numbers, dates. */
+  entities: { kind: "person" | "org" | "account" | "case" | "date" | "amount" | "address" | "other"; value: string }[];
+  language: string;
+  hasHandwriting: boolean;
+  /** Unreadable or cut-off regions worth a human look. */
+  issues: string[];
+  engine: string;
+};
+
+/**
+ * Where documents of a type live in the library and what they are called.
+ * Produces paths like "Finance / Invoices / Acme Supply Co / Invoice 4471".
+ */
+export type FilingRule = {
+  /** Top-level section, e.g. "Finance", "Medical", "Identity". */
+  section: string;
+  /** Folder inside the section, e.g. "Invoices"; null files straight into the section. */
+  collection: string | null;
+  /** Field whose value gets its own subfolder (vendor, patient_name); null for none. */
+  entityField: string | null;
+  /** Field holding the document's own date, e.g. invoice_date; null if none. */
+  dateField: string | null;
+  /** Document name with {field} placeholders, e.g. "Invoice {invoice_number}". */
+  nameTemplate: string;
+};
+
 /** A JSON Schema (object) describing the typed fields for a document type. */
 export type FieldSchema = {
   type: "object";
@@ -39,6 +73,11 @@ export const folders = sqliteTable("folders", {
   /** Materialized path, e.g. "/Finance/Invoices/2026". Recomputed on move/rename. */
   path: text("path").notNull(),
   description: text("description"),
+  /**
+   * Which filing-rule slot this folder was made for ("Finance/Invoices/acme supply co").
+   * Lets rule-based filing find the folder again after the Librarian renames or moves it.
+   */
+  ruleKey: text("rule_key").unique(),
   createdBy: text("created_by", { enum: ["seed", "agent", "user"] })
     .notNull()
     .default("agent"),
@@ -52,6 +91,7 @@ export const documentTypes = sqliteTable("document_types", {
   fieldSchema: text("field_schema", { mode: "json" }).$type<FieldSchema>().notNull(),
   /** How many docs make a "complete" group of this type (e.g. 2 for front/back ID). Null = open-ended. */
   expectedDocsPerGroup: integer("expected_docs_per_group"),
+  filingRule: text("filing_rule", { mode: "json" }).$type<FilingRule>(),
   createdBy: text("created_by", { enum: ["seed", "agent", "user"] })
     .notNull()
     .default("agent"),
@@ -69,6 +109,13 @@ export const documentGroups = sqliteTable("document_groups", {
   status: text("status", { enum: ["incomplete", "complete"] })
     .notNull()
     .default("incomplete"),
+  /** Human-readable name shown in the library, e.g. "Invoice 4471". */
+  displayName: text("display_name"),
+  /** The document's own date (ISO YYYY-MM-DD), from the type's dateField. */
+  documentDate: text("document_date"),
+  folderId: text("folder_id"),
+  /** "rule" = re-filed automatically as fields improve; "agent"/"user" = placed by hand, left alone. */
+  filedBy: text("filed_by", { enum: ["rule", "agent", "user"] }),
   ...timestamps,
 });
 
@@ -137,10 +184,13 @@ export const documents = sqliteTable("documents", {
   title: text("title"),
   summary: text("summary"),
   ocrText: text("ocr_text"),
+  pageAnalysis: text("page_analysis", { mode: "json" }).$type<PageAnalysis>(),
   documentTypeId: text("document_type_id"),
   groupId: text("group_id"),
   folderId: text("folder_id"),
   extractedFields: text("extracted_fields", { mode: "json" }).$type<Record<string, unknown>>(),
+  /** 0-1 per extracted field; values under 0.8 deserve a human look. */
+  fieldConfidence: text("field_confidence", { mode: "json" }).$type<Record<string, number>>(),
   // Set for pages captured by the phone app.
   batchId: text("batch_id"),
   captureId: text("capture_id"), // phone page id, e.g. "p0003-a1b2c3"

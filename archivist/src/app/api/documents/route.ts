@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { desc } from "drizzle-orm";
 import { db, newId, schema } from "@/lib/db";
 import { sanitizeFilename, storage } from "@/lib/storage";
+import { normalizeUpload } from "@/lib/ingest/convert";
 import { enqueueJob, kickWorker } from "@/lib/jobs/queue";
 
 export const maxDuration = 300;
@@ -9,7 +10,8 @@ export const maxDuration = 300;
 const MAX_BYTES = 25 * 1024 * 1024;
 
 /**
- * Upload one or more documents (multipart field "file", repeatable).
+ * Upload one or more documents (multipart field "file", repeatable): images,
+ * PDFs, or Word documents (converted to PDF on arrival).
  * Used by the web UI and, later, the mobile scanner app (send `source=mobile`).
  */
 export async function POST(request: Request) {
@@ -22,15 +24,18 @@ export async function POST(request: Request) {
   for (const file of files) {
     if (file.size > MAX_BYTES) return Response.json({ error: `${file.name} exceeds 25MB` }, { status: 413 });
     const id = newId();
-    const mimeType = file.type || "application/octet-stream";
+    const safeName = sanitizeFilename(file.name);
+    const upload = await normalizeUpload(file.name, file.type || "application/octet-stream", Buffer.from(await file.arrayBuffer()));
+    // Converted uploads (Word documents) keep the original next to the PDF the pipeline reads.
+    if (upload.original) await storage.put(`${id}/original-${safeName}`, upload.original.data, upload.original.mimeType);
     const storagePath = await storage.put(
-      `${id}/${sanitizeFilename(file.name)}`,
-      Buffer.from(await file.arrayBuffer()),
-      mimeType,
+      upload.original ? `${id}/${safeName.replace(/\.docx$/i, "")}.pdf` : `${id}/${safeName}`,
+      upload.data,
+      upload.mimeType,
     );
     const [doc] = await db
       .insert(schema.documents)
-      .values({ id, filename: file.name, mimeType, sizeBytes: file.size, storagePath, source })
+      .values({ id, filename: file.name, mimeType: upload.mimeType, sizeBytes: upload.data.length, storagePath, source })
       .returning();
     await enqueueJob("process", { documentId: id });
     created.push(doc);

@@ -20,15 +20,18 @@
     "@libsql/client": "^0.18.0",
     "@openai/agents": "^0.18.0",
     "drizzle-orm": "^0.45.3",
+    "mammoth": "^1.13.0",
     "nanoid": "^5.1.16",
     "next": "16.3.7",
     "openai": "^7.25.0",
+    "pdfkit": "^0.20.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^18.0.4",

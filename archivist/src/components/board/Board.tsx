@@ -7,6 +7,7 @@ import { CaptureGrid } from "./CaptureGrid";
 import { DocumentsView } from "./DocumentsView";
 import { LibraryView } from "./LibraryView";
 import { PageDialog } from "./PageDialog";
+import { SearchResults } from "./SearchResults";
 
 type Tab = "pages" | "documents" | "library";
 
@@ -26,7 +27,9 @@ export function Board() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [query, setQuery] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   const last = useRef({ board: "", tree: "" });
   const shown = useRef<BoardData | null>(null);
 
@@ -65,6 +68,19 @@ export function Board() {
       clearTimeout(timer);
     };
   }, [refresh]);
+
+  // "/" or Cmd/Ctrl-K jumps to search, like Finder and most Apple apps.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
+      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+        e.preventDefault();
+        searchInput.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function changeScope(next: string) {
     last.current.board = "";
@@ -118,7 +134,7 @@ export function Board() {
           <button className="pill" onClick={() => fileInput.current?.click()} disabled={uploading}>
             {uploading ? "Uploading…" : "Upload"}
           </button>
-          <input ref={fileInput} type="file" multiple accept="image/*,application/pdf" hidden onChange={(e) => upload(e.target.files)} />
+          <input ref={fileInput} type="file" multiple accept="image/*,application/pdf,.docx" hidden onChange={(e) => upload(e.target.files)} />
         </div>
       </div>
 
@@ -128,17 +144,35 @@ export function Board() {
         {data?.groups.length === 1 ? "document" : "documents"}
       </div>
 
-      <div className="segmented">
-        {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
+      <div className="search">
+        <input
+          ref={searchInput}
+          type="search"
+          placeholder="Search documents, people, companies, amounts"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Escape" && setQuery("")}
+          aria-label="Search the library"
+        />
       </div>
 
-      {tab === "pages" && <CaptureGrid pages={pages} notes={data?.voiceNotes ?? []} known={known} onOpen={setOpenId} />}
-      {tab === "documents" && <DocumentsView groups={data?.groups ?? []} pages={pages} onOpen={setOpenId} />}
-      {tab === "library" && <LibraryView tree={tree} onOpen={setOpenId} />}
+      {query.trim() ? (
+        <SearchResults query={query} onOpen={setOpenId} />
+      ) : (
+        <>
+          <div className="segmented">
+            {TABS.map((t) => (
+              <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === "pages" && <CaptureGrid pages={pages} notes={data?.voiceNotes ?? []} known={known} onOpen={setOpenId} />}
+          {tab === "documents" && <DocumentsView groups={data?.groups ?? []} pages={pages} onOpen={setOpenId} />}
+          {tab === "library" && <LibraryView tree={tree} onOpen={setOpenId} />}
+        </>
+      )}
 
       <PageDialog id={openId} onClose={() => setOpenId(null)} />
     </div>

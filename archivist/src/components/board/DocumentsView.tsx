@@ -1,5 +1,6 @@
 import type { BoardGroup, BoardPage } from "@/lib/board";
-import { fileUrl } from "./format";
+import { typeLabel } from "@/lib/format";
+import { PageImage } from "./PageImage";
 
 /** Documents the agent assembled from pages: a page stack, a title, a type. */
 export function DocumentsView({
@@ -33,8 +34,7 @@ export function DocumentsView({
             <div className="stack">
               {shown.map((id, i) =>
                 byId.get(id)?.mimeType.startsWith("image/") ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={id} src={fileUrl(id)} alt="" style={{ left: i * 22, zIndex: shown.length - i }} />
+                  <PageImage key={id} id={id} style={{ left: i * 22, zIndex: shown.length - i }} />
                 ) : (
                   <div key={id} className="blank" style={{ left: i * 22, zIndex: shown.length - i }} />
                 ),
@@ -42,9 +42,9 @@ export function DocumentsView({
             </div>
             <h3>{g.title}</h3>
             <div className="sub">
-              {g.typeName ? `${g.typeName.replace(/_/g, " ")} · ` : ""}
-              {count}
+              {[g.typeName && g.typeName !== "other" ? typeLabel(g.typeName) : null, g.date, count].filter(Boolean).join(" · ")}
             </div>
+            {g.breadcrumb && <div className="sub">{g.breadcrumb}</div>}
           </div>
         );
       })}
