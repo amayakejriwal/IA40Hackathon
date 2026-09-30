@@ -139,6 +139,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
+        if self.path == "/api/mirror":
+            body = self.rfile.read(int(self.headers.get("Content-Length", "0")))
+            MIRROR.update(jpeg=body, meta=self.headers.get("X-Mirror", ""), at=time.time())
+            return self.send(200, {"ok": True})
         if self.path == "/api/agent":
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"[]")
             evs = [emit(e) for e in (body if isinstance(body, list) else [body])]
@@ -179,6 +183,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, {"events": live[since:], "next": len(live)})
         if path in ("/live", "/live/"):
             return self.send(200, (LIVE_DIR / "index.html").read_bytes(), "text/html; charset=utf-8")
+        if path == "/api/mirror":
+            if not MIRROR["jpeg"] or time.time() - MIRROR["at"] > 5:
+                return self.send(204, b"")
+            self.send_response(200)
+            for k, v in (("Content-Type", "image/jpeg"), ("Content-Length", str(len(MIRROR["jpeg"]))),
+                         ("Cache-Control", "no-store"), ("X-Mirror", MIRROR["meta"])):
+                self.send_header(k, v)
+            self.end_headers()
+            return self.wfile.write(MIRROR["jpeg"])
         if path == "/ping":
             return self.send(200, {"ok": True, "host": socket.gethostname()})
         if path == "/api/pages":
@@ -258,6 +271,29 @@ def reader():
               f"({out.get('read_words', '-')} words, {int(out.get('read_rate', 0) * 100)}% real) -> {base}.full.json", flush=True)
 
 
+MIRROR = {"jpeg": None, "meta": "", "at": 0.0}   # latest phone preview frame (app-side mirror)
+
+
+def usb_ip():
+    """The Mac's address on the iPhone's USB link (169.254.x.x on an en* port other than Wi-Fi)."""
+    out = subprocess.run(["ifconfig"], capture_output=True, text=True).stdout
+    iface = None
+    for line in out.splitlines():
+        if line and not line[0].isspace():
+            iface = line.split(":")[0]
+        elif iface and iface.startswith("en") and iface != "en0":
+            m = re.search(r"inet (169\.254\.\d+\.\d+)", line)
+            if m:
+                return m[1]
+    return None
+
+
+def advertise(ip):
+    return subprocess.Popen(["dns-sd", "-R", f"FieldScan {socket.gethostname().split('.')[0]}",
+                             "_fieldscan._tcp", "local", str(PORT), f"ip={ip}", f"port={PORT}"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def main():
     if WHISPER and MODEL.exists():
         threading.Thread(target=transcriber, daemon=True).start()
@@ -265,11 +301,25 @@ def main():
         print(f"WARNING: no transcription (whisper-cli={WHISPER}, model exists={MODEL.exists()})", flush=True)
     threading.Thread(target=reader, daemon=True).start()
     load_existing()
-    ip = os.environ.get("FIELD_CAPTURE_ADVERTISE_IP") or lan_ip()
+    want = os.environ.get("FIELD_CAPTURE_ADVERTISE_IP", "")
+    pick = lambda: (usb_ip() or lan_ip()) if want == "usb" else (want or lan_ip())
+    ip = pick()
     # Bonjour advertisement via the built-in macOS dns-sd tool; TXT carries the IPv4 address.
-    adv = subprocess.Popen(["dns-sd", "-R", f"FieldScan {socket.gethostname().split('.')[0]}",
-                            "_fieldscan._tcp", "local", str(PORT), f"ip={ip}", f"port={PORT}"],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    adv = advertise(ip)
+
+    def follow():
+        # FIELD_CAPTURE_ADVERTISE_IP=usb: the USB link's address changes on every reconnect, so
+        # re-advertise when it does. The app looks the laptop up again after failed uploads.
+        nonlocal adv, ip
+        while True:
+            time.sleep(2)
+            now = pick()
+            if now != ip:
+                adv.terminate()
+                ip, adv = now, advertise(now)
+                print(f"{time.strftime('%H:%M:%S')} advertising {ip}:{PORT}", flush=True)
+    if want == "usb":
+        threading.Thread(target=follow, daemon=True).start()
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"receiver on http://{ip}:{PORT}  (dashboard: http://localhost:{PORT})  data: {DATA}", flush=True)
     try:

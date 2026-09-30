@@ -43,6 +43,12 @@ final class CaptureEngine: NSObject {
     private var retake = false
     private var absent = 0
     private var paused = true   // armed only between Start and Stop
+    /// ~10 fps downscaled preview JPEG plus the outline and its state, for the laptop's phone mirror.
+    var onMirror: ((Data, Quad?, String) -> Void)?
+    private let mirrorQueue = DispatchQueue(label: "mirror")
+    private let mirrorCtx = CIContext()
+    private var mirrorBusy = false, lastMirror = 0.0
+    private var mirrorQuad: Quad?, mirrorState = "paused"
     private var manual = false
     private var batch = ""
     private var number = 1
@@ -248,7 +254,31 @@ final class CaptureEngine: NSObject {
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
+    private func mirror(_ pb: CVPixelBuffer, now: CFTimeInterval) {
+        guard onMirror != nil, !mirrorBusy, now - lastMirror >= 0.1 else { return }
+        lastMirror = now; mirrorBusy = true
+        let img = CIImage(cvPixelBuffer: pb).oriented(.right)
+        let q = mirrorQuad, st = mirrorState
+        mirrorQueue.async {
+            let s = 720 / img.extent.height
+            let small = img.transformed(by: CGAffineTransform(scaleX: s, y: s))
+            let jpeg = self.mirrorCtx.jpegRepresentation(of: small, colorSpace: CGColorSpaceCreateDeviceRGB(),
+                options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: 0.55])
+            self.videoQueue.async { self.mirrorBusy = false }
+            if let jpeg { self.onMirror?(jpeg, q, st) }
+        }
+    }
+
     private func emit(_ quad: Quad?, _ state: OverlayState) {
+        mirrorQuad = quad
+        switch state {
+        case .searching: mirrorState = "searching"
+        case .stabilizing(let p): mirrorState = "stabilizing:\(p)"
+        case .captured: mirrorState = "captured"
+        case .waiting: mirrorState = "waiting"
+        case .duplicate: mirrorState = "duplicate"
+        case .paused: mirrorState = "paused"
+        }
         let size = portrait
         DispatchQueue.main.async { self.onOverlay?(quad, state, size) }
     }
@@ -293,6 +323,7 @@ extension CaptureEngine: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pb = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let now = CACurrentMediaTime()
+        mirror(pb, now: now)
         portrait = CGSize(width: CVPixelBufferGetHeight(pb), height: CVPixelBufferGetWidth(pb))
         // Not scanning: no page detection and no outline, so the preview stays still before Start.
         if paused { lastQuad = nil; return emit(nil, .paused) }
